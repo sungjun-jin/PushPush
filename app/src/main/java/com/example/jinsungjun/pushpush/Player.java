@@ -6,13 +6,13 @@ import android.graphics.Paint;
 public class Player {
 
     Paint paint;
-    float x,y;
+    int x,y;
 
     public Player() {
 
         //player의 색 입력
         paint = new Paint();
-        paint.setColor(Color.BLACK);
+        paint.setColor(Color.YELLOW);
         //기본좌표 입력
         x = 0;
         y = 0;

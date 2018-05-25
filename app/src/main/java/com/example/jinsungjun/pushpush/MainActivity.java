@@ -5,8 +5,9 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements Stage.EndStage {
 
     float stageWidth;
     float stageHeight;
@@ -40,18 +41,18 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onClick(View view) {
 
-            switch(view.getId()) {
+            switch (view.getId()) {
 
-                case R.id.btnUp :
+                case R.id.btnUp:
                     stage.move(Stage.UP);
                     break;
-                case R.id.btnDown :
+                case R.id.btnDown:
                     stage.move(Stage.DOWN);
                     break;
-                case R.id.btnLeft :
+                case R.id.btnLeft:
                     stage.move(Stage.LEFT);
                     break;
-                case R.id.btnRight :
+                case R.id.btnRight:
                     stage.move(Stage.RIGHT);
                     break;
             }
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
         container = findViewById(R.id.container);
         //스테이지 설정
         stage = new Stage(this);
-        stage.setConfig(gridCount,unit);
+        stage.setConfig(gridCount, unit);
         //스테이지를 프레임 레이아웃에 넣기
         container.addView(stage);
         //맵에 대한 정보를 가지고 와서 맵 세팅하기
@@ -93,4 +94,24 @@ public class MainActivity extends AppCompatActivity {
         stage.addPlayer(player);
     }
 
+    @Override
+    public void makeText() {
+        Toast.makeText(this, "성공", Toast.LENGTH_LONG).show();
+
+        Thread exitThread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(3000);
+                    MainActivity.this.finish();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        exitThread.start();
+    }
 }
+
+
+
