@@ -6,9 +6,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
 import android.view.View;
-import android.widget.Toast;
-
-import static android.widget.Toast.LENGTH_LONG;
 
 public class Stage extends View {
 
@@ -20,27 +17,15 @@ public class Stage extends View {
     int gridCount;
     float unit;
     EndStage endStage;
-
-    int tempDirection = 8;
-
-
     //플레이어
     Player player;
-
     //맵
     int currentMap[][];
-
-    //박스가 goal 구간 안에 있는지 없는지를 체크
-    boolean goalFlag = false;
-
     //그리드
     Paint gridPaint = new Paint();
     Paint boxPaint = new Paint();
     Paint goalPaint = new Paint();
     Paint successPaint = new Paint();
-
-//    EndStage endStage;
-
 
     public Stage(Context context) {
         super(context);
@@ -84,7 +69,6 @@ public class Stage extends View {
                     tempPaint = gridPaint;
                 } else if (currentMap[y][x] == 1) {
                     tempPaint = boxPaint;
-
                 } else if (currentMap[y][x] == 9) {
                     tempPaint = goalPaint;
                 } else if (currentMap[y][x] == 7) {
@@ -114,6 +98,7 @@ public class Stage extends View {
 
     public void move(int direction) {
 
+
         switch (direction) {
             case UP:
                 if (collisionProcess(UP))
@@ -133,9 +118,8 @@ public class Stage extends View {
                 break;
         }
         //OnDraw 호출
-        completionProcess();
         invalidate();
-
+        completionProcess();
 
     }
 
@@ -147,8 +131,6 @@ public class Stage extends View {
     private void completionProcess() {
 
         int goalCount = getCounts();
-
-        Log.d("goalCount", "goalCount=========" + goalCount);
 
         if (goalCount == 0) {
 
@@ -185,48 +167,43 @@ public class Stage extends View {
                 if ((player.y - 1) < 0)
                     return false;
 
-                if (goalFlag) {
-
-                    Log.d("false", "wefwefwfwef");
-
-                    if (currentMap[player.y - 2][player.x] == 0) {
-
-                        currentMap[player.y - 1][player.x] = 9;
-                        currentMap[player.y - 2][player.x] = 1;
-                        goalFlag = false;
-                    }
-                }
-
-                //플레이어의 위에 박스가 있으면
+                // 플레이어의 위에 박스가 있을 때와 플레이어의 위에 골안에 들어간 박스가 있으면
                 if (currentMap[player.y - 1][player.x] == 1 || currentMap[player.y - 1][player.x] == 7) {
 
-                    //박스가 스테이지 밖을 벗어나거나, 플레이어의 윗편에 또다른 박스가 있으면
-                    if (player.y - 2 < 0 || currentMap[player.y - 2][player.x] == 1) {
-                        goalFlag = false;
+                    //박스가 스테이지 밖을 벗어나거나, 플레이어의 위에 또다른 박스가 있으면, 박스 위에 골에 들어간 박스가 있는 경우
+                    if (player.y - 2 >= gridCount || currentMap[player.y - 2][player.x] == 1 || currentMap[player.y - 2][player.x] == 7)
+                        // 움직임 불가
                         return false;
-                    }
 
+                    //박스의 위에 골이 있는 경우
                     if (currentMap[player.y - 2][player.x] == 9) {
 
+                        //플레이어의 위에 있는 박스가 골안에 이미 들어간 경우
                         if (currentMap[player.y - 1][player.x] == 7) {
 
-                            //앞 자리에 goal 넣어주고 박스이동
+                            //플레이어의 다음위치는 골안에, 박스는 여전히 파란박스
                             currentMap[player.y - 1][player.x] = 9;
                             currentMap[player.y - 2][player.x] = 7;
                         } else {
-                            //박스가 처음으로 goal구간에 진입한 상황
+                            //박스의 골 초기 진입
                             currentMap[player.y - 1][player.x] = 0;
                             currentMap[player.y - 2][player.x] = 7;
-                            goalFlag = true;
                         }
                     } else {
-                        // 정상적으로 박스와 함께 움직인다.
-                        currentMap[player.y - 1][player.x] = 0;
-                        currentMap[player.y - 2][player.x] = 1;
-                        goalFlag = false;
+                        //박스의 위에 아무것도 없을 경우
+
+                        //플레이어의 위에 골안에 들어간 박스가 있으면
+                        if (currentMap[player.y - 1][player.x] == 7) {
+                            //플레이어의 다음 위치는 골, 골을 벗어난 박스는 원래의 검정 박스로
+                            currentMap[player.y - 1][player.x] = 9;
+                            currentMap[player.y - 2][player.x] = 1;
+                        } else {
+                            //박스를 가진 채 정상이동
+                            currentMap[player.y - 1][player.x] = 0;
+                            currentMap[player.y - 2][player.x] = 1;
+                        }
                     }
                 }
-
                 break;
 
             case Stage.DOWN:
@@ -235,161 +212,136 @@ public class Stage extends View {
                 if ((player.y + 1) >= gridCount)
                     return false;
 
-                if (goalFlag) {
+                // 플레이어의 아래쪽에 박스가 있을 때와 플레이어의 아래쪽에 골안에 들어간 박스가 있으면
+                if (currentMap[player.y + 1][player.x] == 1 || currentMap[player.y + 1][player.x] == 7) {
 
-
-                    if (currentMap[player.y + 2][player.x] == 0) {
-
-                        currentMap[player.y + 1][player.x] = 9;
-                        currentMap[player.y + 2][player.x] = 1;
-                        goalFlag = false;
-                    }
-                }
-
-                //플레이어의 밑에 박스가 있다면
-                if ((currentMap[player.y + 1][player.x]) == 1 || currentMap[player.y + 1][player.x] == 7) {
-
-                    //박스가 스테이지 밖을 벗어나거나, 플레이어의 밑에 또다른 박스가 있으면
-                    if (player.y + 2 >= gridCount || currentMap[player.y + 2][player.x] == 1) {
-
-                        goalFlag = false;
-                        //움직임 불가
+                    //박스가 스테이지 밖을 벗어나거나, 플레이어의 아래쪽에 또다른 박스가 있으면, 박스 아래쪽에 골에 들어간 박스가 있는 경우
+                    if (player.y + 2 >= gridCount || currentMap[player.y + 2][player.x] == 1 || currentMap[player.y + 2][player.x] == 7)
+                        // 움직임 불가
                         return false;
-                    }
+
+                    //박스의 아래쪽에 골이 있는 경우
                     if (currentMap[player.y + 2][player.x] == 9) {
 
+                        //플레이어의 아래쪽에 있는 박스가 골안에 들어간 경우
                         if (currentMap[player.y + 1][player.x] == 7) {
 
-                            //앞 자리에 goal 넣어주고 박스이동
+                            //플레이어의 다음위치는 골안에, 박스는 여전히 파란박스
                             currentMap[player.y + 1][player.x] = 9;
                             currentMap[player.y + 2][player.x] = 7;
                         } else {
-                            //박스가 처음으로 goal구간에 진입한 상황
+                            //박스의 골 초기 진입
                             currentMap[player.y + 1][player.x] = 0;
                             currentMap[player.y + 2][player.x] = 7;
-                            goalFlag = true;
                         }
                     } else {
-                        // 정상적으로 박스와 함께 움직인다.
-                        currentMap[player.y + 1][player.x] = 0;
-                        currentMap[player.y + 2][player.x] = 1;
-                        goalFlag = false;
+                        //박스의 아래쪽에 아무것도 없을 경우
+
+                        //플레이어의 아래쪽에 골안에 들어간 박스가 있으면
+                        if (currentMap[player.y + 1][player.x] == 7) {
+                            //플레이어의 다음위치는 골안에, 골을 벗어난 박스는 원래의 검정 박스로
+                            currentMap[player.y + 1][player.x] = 9;
+                            currentMap[player.y + 2][player.x] = 1;
+                        } else {
+                            //박스를 가진 채 정상이동
+                            currentMap[player.y + 1][player.x] = 0;
+                            currentMap[player.y + 2][player.x] = 1;
+                        }
                     }
                 }
-
                 break;
 
             case Stage.LEFT:
-
 
                 //플레이어가 스테이지 밖을 벗어나는지 체크
                 if ((player.x - 1) < 0)
                     return false;
 
-                if (goalFlag) {
+                // 플레이어의 왼쪽에 박스가 있을 때와 플레이어의 왼쪽에 골안에 들어간 박스가 있으면
+                if (currentMap[player.y][player.x - 1] == 1 || currentMap[player.y][player.x - 1] == 7) {
 
-                    if (currentMap[player.y][player.x - 2] == 0) {
-
-                        currentMap[player.y][player.x - 1] = 9;
-                        currentMap[player.y][player.x - 2] = 1;
-                        goalFlag = false;
-                    }
-                }
-
-                //플레이어의 왼쪽에 박스가 있다면
-                if ((currentMap[player.y][player.x - 1] == 1) || currentMap[player.y][player.x - 1] == 7) {
-                    //박스가 스테이지 밖을 벗어나거나, 플레이어의 왼편에 또다른 박스가 있으면
-                    if (player.x - 2 < 0 || currentMap[player.y][player.x - 2] == 1) {
-                        goalFlag = false;
-                        //이동 불가
+                    //박스가 스테이지 밖을 벗어나거나, 플레이어의 왼쪽에 또다른 박스가 있으면, 박스 왼쪽에 골에 들어간 박스가 있는 경우
+                    if (player.x - 2 >= gridCount || currentMap[player.y][player.x - 2] == 1 || currentMap[player.y][player.x - 2] == 7)
+                        // 움직임 불가
                         return false;
-                    }
 
-                    // 박스의 오른편에 goal이 있다면
+                    //박스의 왼쪽에 골이 있는 경우
                     if (currentMap[player.y][player.x - 2] == 9) {
-                        //처음에는 goalFlag 구간 생략
 
-                        //박스가 goal 구간 안으로 진입한 상황
+                        //플레이어의 왼쪽에 있는 박스가 골안에 들어간 경우
                         if (currentMap[player.y][player.x - 1] == 7) {
 
-                            //앞 자리에 goal 넣어주고 박스이동
+                            //플레이어의 다음위치는 골안에, 박스는 여전히 파란박스
                             currentMap[player.y][player.x - 1] = 9;
                             currentMap[player.y][player.x - 2] = 7;
-
                         } else {
-                            //박스가 처음으로 goal구간에 진입한 상황
+                            //박스의 골 초기 진입
                             currentMap[player.y][player.x - 1] = 0;
                             currentMap[player.y][player.x - 2] = 7;
-                            goalFlag = true;
                         }
-                        // 박스의 오른편에 goal이 없다면
                     } else {
-                        // 정상적으로 박스와 함께 움직인다.
-                        currentMap[player.y][player.x - 1] = 0;
-                        currentMap[player.y][player.x - 2] = 1;
-                        goalFlag = false;
+                        //박스의 왼쪽에 아무것도 없을 경우
+
+                        //플레이어의 왼쪽에 골안에 들어간 박스가 있으면
+                        if (currentMap[player.y][player.x - 1] == 7) {
+                            //플레이어의 다음위치는 골안에, 골을 벗어난 박스는 원래의 검정 박스로
+                            currentMap[player.y][player.x - 1] = 9;
+                            currentMap[player.y][player.x - 2] = 1;
+                        } else {
+                            //박스를 가진 채 정상이동
+                            currentMap[player.y][player.x - 1] = 0;
+                            currentMap[player.y][player.x - 2] = 1;
+                        }
                     }
                 }
-
                 break;
 
             case Stage.RIGHT:
-
-
                 //플레이어가 스테이지 밖을 벗어나는지 체크
                 if ((player.x + 1) >= gridCount)
                     return false;
 
-                if (goalFlag) {
-
-                    if (currentMap[player.y][player.x + 2] == 0) {
-
-                        currentMap[player.y][player.x + 1] = 9;
-                        currentMap[player.y][player.x + 2] = 1;
-                        goalFlag = false;
-                    }
-                }
-
-                // 플레이어의 오른쪽에 박스가 있으면
+                // 플레이어의 오른쪽에 박스가 있을 때와 플레이어의 오른쪽에 골안에 들어간 박스가 있으면
                 if (currentMap[player.y][player.x + 1] == 1 || currentMap[player.y][player.x + 1] == 7) {
 
-                    //박스가 스테이지 밖을 벗어나거나, 플레이어의 오른편에 또다른 박스가 있으면
-                    if (player.x + 2 >= gridCount || currentMap[player.y][player.x + 2] == 1) {
-                        //goalFlag == false
-                        goalFlag = false;
+                    //박스가 스테이지 밖을 벗어나거나, 플레이어의 오른편에 또다른 박스가 있으면, 박스 오른편에 골에 들어간 박스가 있는 경우
+                    if (player.x + 2 >= gridCount || currentMap[player.y][player.x + 2] == 1 || currentMap[player.y][player.x + 2] == 7)
                         // 움직임 불가
                         return false;
-                    }
 
-                    // 박스의 오른편에 goal이 있다면
+                    //박스의 오른편에 골이 있는 경우
                     if (currentMap[player.y][player.x + 2] == 9) {
-                        //처음에는 goalFlag 구간 생략
 
-                        //박스가 goal 구간 안으로 진입한 상황
+                        //플레이어의 오른편에 있는 박스가 골안에 들어간 경우
                         if (currentMap[player.y][player.x + 1] == 7) {
 
-                            //앞 자리에 goal 넣어주고 박스이동
+                            //플레이어의 다음위치는 골안에, 박스는 여전히 파란박스
                             currentMap[player.y][player.x + 1] = 9;
                             currentMap[player.y][player.x + 2] = 7;
-
                         } else {
-                            //박스가 처음으로 goal구간에 진입한 상황
+                            //박스의 골 초기 진입
                             currentMap[player.y][player.x + 1] = 0;
                             currentMap[player.y][player.x + 2] = 7;
-                            goalFlag = true;
                         }
-                        // 박스의 오른편에 goal이 없다면
                     } else {
-                        // 정상적으로 박스와 함께 움직인다.
-                        currentMap[player.y][player.x + 1] = 0;
-                        currentMap[player.y][player.x + 2] = 1;
-                        goalFlag = false;
+                        //박스의 오른편에 아무것도 없을 경우
+
+                        //플레이어의 오른편에 골안에 들어간 박스가 있으면
+                        if (currentMap[player.y][player.x + 1] == 7) {
+                            //플레이어의 다음위치는 골안에, 골을 벗어난 박스는 원래의 검정 박스로
+                            currentMap[player.y][player.x + 1] = 9;
+                            currentMap[player.y][player.x + 2] = 1;
+                        } else {
+                            //박스를 가진 채 정상이동
+                            currentMap[player.y][player.x + 1] = 0;
+                            currentMap[player.y][player.x + 2] = 1;
+                        }
                     }
                 }
                 break;
         }
-        Log.d("goalFlag", goalFlag + "");
         return true;
+
     }
 
 
